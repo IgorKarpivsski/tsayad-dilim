@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="hero"><h1>{{ heading }}</h1><p>{{ intro }}</p></section>
+{% if products %}
+<div class="grid">
+{% for p in products %}
+<a class="card" href="/p/{{ p.id }}/">
+<img loading="lazy" src="{{ p.image_url }}" alt="{{ p.title_he }}">
+<div class="b">
+{% if p.f.discount %}<span class="tag">-{{ p.f.discount }}</span>{% endif %}
+<h3>{{ p.title_he }}</h3>
+<div class="price">{{ p.f.price }}{% if p.f.original %}<s>{{ p.f.original }}</s>{% endif %}</div>
+<div class="meta">{{ p.f.feedback }}{% if p.f.orders %} · {{ p.f.orders }}{% endif %}</div>
+</div></a>
+{% endfor %}
+</div>
+{% else %}
+<p class="note">עדיין אין כאן מוצרים – המוצרים הראשונים יעלו אחרי הפרסום הראשון. בינתיים הצטרפו לערוץ הטלגרם.</p>
+{% endif %}
+{% endblock %}

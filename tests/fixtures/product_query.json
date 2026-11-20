@@ -1,0 +1,14 @@
+{"aliexpress_affiliate_product_query_response": {"resp_result": {"resp_code": 200, "resp_msg": "Call succeeds",
+ "result": {"current_page_no": 1, "current_record_count": 3, "total_record_count": 3, "products": {"product": [
+  {"product_id": 1005006000000001, "product_title": "מחזיק טלפון מגנטי לרכב עם סיבוב 360 מעלות", "product_main_image_url": "https://ae01.alicdn.com/kf/test1.jpg",
+   "product_small_image_urls": {"string": ["https://ae01.alicdn.com/kf/test1b.jpg"]}, "target_sale_price": "24.90", "target_sale_price_currency": "ILS",
+   "target_original_price": "49.80", "discount": "50%", "evaluate_rate": "97.2%", "lastest_volume": 3120, "commission_rate": "7.0%",
+   "promotion_link": "https://s.click.aliexpress.com/e/_test1", "product_detail_url": "https://www.aliexpress.com/item/1005006000000001.html",
+   "first_level_category_name": "Automobiles", "shop_id": 111, "shop_url": "https://www.aliexpress.com/store/111"},
+  {"product_id": 1005006000000002, "product_title": "מנורת לילה חכמה עם חיישן תנועה נטענת", "product_main_image_url": "https://ae01.alicdn.com/kf/test2.jpg",
+   "target_sale_price": "15.50", "target_original_price": "15.50", "discount": "0%", "evaluate_rate": "86.0%", "lastest_volume": 900,
+   "commission_rate": "9.0%", "promotion_link": "https://s.click.aliexpress.com/e/_test2", "product_detail_url": "https://www.aliexpress.com/item/1005006000000002.html"},
+  {"product_id": 1005006000000003, "product_title": "סט מברשות ניקוי למטבח ולאמבטיה איכותי", "product_main_image_url": "https://ae01.alicdn.com/kf/test3.jpg",
+   "target_sale_price": "12.30", "target_original_price": "20.50", "discount": "40%", "evaluate_rate": "95.1%", "lastest_volume": 640,
+   "commission_rate": "50.0%", "promotion_link": "", "product_detail_url": "https://www.aliexpress.com/item/1005006000000003.html"}
+ ]}}}}}

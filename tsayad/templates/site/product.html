@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="product">
+<div><img src="{{ p.image_url }}" alt="{{ p.title_he }}"></div>
+<div>
+<p class="meta"><a href="/c/{{ p.category }}/">{{ cat_he }}</a></p>
+<h1 style="font-size:26px;color:var(--d);margin:0 0 10px">{{ p.title_he }}</h1>
+<div class="price" style="font-size:34px">{{ p.f.price }}{% if p.f.original %}<s>{{ p.f.original }}</s>{% endif %}
+{% if p.f.discount %}<span class="tag">-{{ p.f.discount }}</span>{% endif %}</div>
+<ul>
+{% if p.f.feedback %}<li>⭐ {{ p.f.feedback }} (נתון AliExpress)</li>{% endif %}
+{% if p.f.orders %}<li>📦 {{ p.f.orders }}</li>{% endif %}
+<li>🚚 משלוח לישראל: עלות וזמני משלוח מוצגים בעמוד המוכר בהתאם לאפשרות שתבחרו.</li>
+{% if hook %}<li>💡 {{ hook }}</li>{% endif %}
+</ul>
+<p><a class="btn" href="{{ buy }}" rel="sponsored nofollow noopener" target="_blank">🛒 לצפייה ורכישה ב-AliExpress</a></p>
+<p class="note">עודכן לאחרונה: {{ updated }}. {{ price_note }}<br>{{ disclosure }}</p>
+<p><a class="tg" href="https://t.me/{{ brand.telegram_username }}">רוצים עוד דילים כאלה? לטלגרם ←</a></p>
+</div></div>
+{% endblock %}

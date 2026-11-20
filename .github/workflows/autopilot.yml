@@ -1,0 +1,82 @@
+name: autopilot
+
+on:
+  schedule:
+    - cron: "17 * * * *"      # hourly; the app decides if a post is due (target: every 2h)
+  workflow_dispatch: {}       # manual run + reliable trigger from the Cloudflare Worker cron
+
+concurrency:
+  group: tsayad-autopilot    # never two runs at once -> no double posts
+  cancel-in-progress: false
+
+permissions:
+  contents: write             # needed only to force-push the encrypted state to the `data` branch
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      AE_APP_KEY: ${{ secrets.AE_APP_KEY }}
+      AE_APP_SECRET: ${{ secrets.AE_APP_SECRET }}
+      AE_TRACKING_ID: ${{ secrets.AE_TRACKING_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+      TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+      FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+      FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+      TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+      TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      TRACKER_URL: ${{ secrets.TRACKER_URL }}
+      TRACKER_SECRET: ${{ secrets.TRACKER_SECRET }}
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+      DATA_KEY: ${{ secrets.DATA_KEY }}
+      SITE_URL: ${{ vars.SITE_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PAGES_PROJECT: ${{ vars.CF_PAGES_PROJECT || 'tsayad-dilim' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: System packages (ffmpeg, Hebrew text shaping)
+        run: |
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          sudo apt-get install -y -qq libraqm0 libfribidi0 >/dev/null 2>&1 || true
+
+      - run: pip install -r requirements.txt
+
+      - name: Guard – refuse to run without the encryption key (public repo!)
+        run: test -n "$DATA_KEY" || (echo "::error::DATA_KEY secret is missing" && exit 1)
+
+      - name: Autopilot tick (scan, publish to Telegram, analytics, site, dashboard, reports)
+        run: python -m tsayad tick
+
+      - name: Save encrypted state
+        if: always()
+        run: python -m tsayad save
+
+      - name: Deploy site + dashboard to Cloudflare Pages
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx --yes wrangler@4 pages deploy build/site --project-name="$CF_PAGES_PROJECT" --branch=main --commit-dirty=true
+
+      - name: Social publishing (Facebook, Instagram, TikTok drafts) – after deploy so media URLs are live
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: python -m tsayad social && python -m tsayad save
+
+      - name: Alert on crash
+        if: failure()
+        run: |
+          python - <<'EOF'
+          from tsayad import telegram
+          telegram.notify_admin("🚨 צייד הדילים: הרצת האוטומציה נכשלה. פרטים: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          EOF

@@ -1,0 +1,8 @@
+.env
+data/
+build/
+__pycache__/
+*.pyc
+.pytest_cache/
+worker/.wrangler/
+node_modules/

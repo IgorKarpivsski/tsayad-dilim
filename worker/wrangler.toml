@@ -1,0 +1,22 @@
+name = "tsayad-go"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+# Runs every hour at minute 7 (UTC). The pipeline itself decides whether a post is due.
+[triggers]
+crons = ["7 * * * *"]
+
+[vars]
+SITE_URL = "https://tsayad-dilim.pages.dev"
+GH_REPO = "YOUR_GITHUB_USER/tsayad"   # <- change
+GH_REF = "main"
+
+# Created with: npx wrangler d1 create tsayad-clicks   (paste the id it prints)
+[[d1_databases]]
+binding = "DB"
+database_name = "tsayad-clicks"
+database_id = "PASTE_D1_DATABASE_ID"
+
+# Secrets (never in this file):
+#   npx wrangler secret put TRACKER_SECRET
+#   npx wrangler secret put GH_TOKEN

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>צייד הדילים – מרכז הניהול</title>
+<style>
+@font-face{font-family:Heebo;src:url(/assets/Heebo.ttf);font-weight:100 900}
+:root{--p:#FF5A36;--d:#14213D;--a:#FFC93C;--bg:#F4F6FA;--ok:#1E9E5A;--warn:#D98E04;--bad:#D33A2C;--mut:#6B7280}
+*{box-sizing:border-box}body{margin:0;font-family:Heebo,system-ui,sans-serif;background:var(--bg);color:#111}
+header{background:var(--d);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header b{font-size:22px}nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:2}
+nav button{border:0;background:#eef1f6;padding:8px 14px;border-radius:10px;font:inherit;cursor:pointer}nav button.on{background:var(--p);color:#fff}
+main{padding:18px;max-width:1300px;margin:auto}section{display:none}section.on{display:block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.k{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}.k small{color:var(--mut)}.k div{font-size:26px;font-weight:800}
+.card{background:#fff;border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:7px 8px;border-bottom:1px solid #eef0f3;text-align:right;vertical-align:top}
+th{background:#fafbfc;position:sticky;top:0}td.t{max-width:360px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+.ok{background:var(--ok)}.warn{background:var(--warn)}.bad{background:var(--bad)}.mut{background:#9CA3AF}
+h2{margin:6px 0 4px}.sub{color:var(--mut);font-size:14px;margin:0 0 10px}a{color:#1d4ed8}
+input.f{padding:8px 12px;border:1px solid #d1d5db;border-radius:10px;font:inherit;width:260px}
+</style></head><body>
+<header><b>צייד הדילים · מרכז הניהול</b><span id="gen"></span></header>
+<nav id="nav"></nav><main id="main"></main>
+<script>
+const D = __DATA__;
+const tabs = [["home","ראשי"],["products","מוצרים"],["posts","פרסומים"],["revenue","הכנסות"],["marketing","שיווק"],["ai","AI BUSINESS IMPROVEMENTS"],["settings","הגדרות"]];
+const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstChild};
+const esc = s => (s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const na = v => v===null||v===undefined ? '<span class="pill mut">לא זמין</span>' : esc(typeof v==='number'? v.toLocaleString('he-IL',{maximumFractionDigits:2}) : v);
+const pill = s => { const m={published:'ok',active:'ok',configured:'ok',queued:'warn',draft:'warn',pending:'mut',skipped:'mut',failed:'bad',rejected:'bad',new:'mut'};
+  const he={published:'פורסם',active:'פעיל',configured:'מוגדר',queued:'בתור',draft:'טיוטה',pending:'Pending',skipped:'דולג',failed:'נכשל',rejected:'נפסל',new:'חדש'};
+  return `<span class="pill ${m[s]||'mut'}">${he[s]||esc(s)}</span>`; };
+function table(rows, cols){ if(!rows.length) return '<p class="sub">אין נתונים עדיין.</p>';
+  return `<table><thead><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td class="${c[3]||''}">${c[2]?c[2](r[c[0]],r):na(r[c[0]])}</td>`).join('')}</tr>`).join('')}</tbody></table>`; }
+const K = (label, v, note) => `<div class="k"><small>${label}</small><div>${na(v)}</div>${note?`<small>${note}</small>`:''}</div>`;
+const S = {
+ home: () => `<h2>סטטוס המערכת</h2><p class="sub">ריצה אחרונה: ${esc(D.last_run)} · הפרסום הבא: ${esc(D.next_post||'בהרצה הקרובה')}</p>
+  <div class="kpis">${K('מוצרים במאגר',D.counts.products)}${K('בתור לפרסום',D.counts.queued)}${K('פרסומים (סה"כ)',D.counts.posts_ok)}
+  ${K('חברים בערוץ',D.k30.tg_members)}${K('עוקבים FB',D.k30.fb_followers)}${K('עוקבים IG',D.k30.ig_followers)}
+  ${K('קליקים (30 יום)',D.k30.clicks, D.k30.clicks_tracking?'':'מעקב קליקים Pending')}${K('הזמנות (30 יום)',D.k30.orders, D.k30.orders_api.ok?'':'API מכירות לא זמין')}
+  ${K('עמלה צפויה $',D.k30.commission_est)}${K('תקלות (24ש)',D.k1.posts_failed)}</div>
+  <div class="card"><h3>התראות אחרונות</h3>${table(D.alerts,[['ts','זמן'],['level','רמה'],['message','הודעה',null,'t']])}</div>`,
+ products: () => `<h2>מוצרים</h2><input class="f" placeholder="חיפוש..." oninput="filt(this.value)">
+  <div class="card">${table(D.products,[['status','סטטוס',pill],['title_he','מוצר',(v,r)=>`<a href="${esc(r.detail_url)}" target="_blank">${esc(v)}</a>`,'t'],['score','ציון'],['price','מחיר ₪'],['discount','הנחה %'],['feedback','משוב %'],['orders','הזמנות'],['commission','עמלה %'],['category','קטגוריה'],['affiliate_link','Affiliate',v=>v?`<a href="${esc(v)}" target="_blank">קישור</a>`:'—'],['reject_reason','סיבת פסילה'],['clicks','קליקים']])}</div>`,
+ posts: () => `<h2>פרסומים</h2><div class="card">${table(D.posts,[['created_at','זמן'],['platform','פלטפורמה'],['status','סטטוס',pill],['style','סגנון'],['title','מוצר',null,'t'],['clicks','קליקים'],['external_id','מזהה'],['error','שגיאה',null,'t']])}</div>`,
+ revenue: () => `<h2>הכנסות</h2><p class="sub">${D.k30.orders_api.ok?'נתוני הזמנות מ-AliExpress API (סנכרון כל 6 שעות).':'⚠️ אין גישה לנתוני מכירות דרך ה-API כרגע – הנתונים כאן לא יוצגו עד שהגישה תאושר. בדוק בפורטל AliExpress. שגיאה: '+esc(D.k30.orders_api.error||'לא נבדק')}</p>
+  <div class="kpis">${K('קליקים',D.k30.clicks)}${K('הזמנות',D.k30.orders)}${K('הזמנות ממתינות',D.rev.pending)}${K('מכירות מאושרות',D.rev.confirmed)}
+  ${K('עמלות צפויות $',D.k30.commission_est)}${K('עמלות שאושרו $',D.k30.commission_final)}${K('עמלות ששולמו $',D.rev.paid)}</div>
+  <p class="sub">קליקים אינם הכנסה. עמלה "צפויה" עלולה להתבטל בהחזרות.</p><div class="card">${table(D.orders,[['created_at','נוצר'],['status','סטטוס'],['product_id','מוצר'],['paid_amount','סכום'],['commission_est','עמלה צפויה'],['commission_final','עמלה סופית']])}</div>`,
+ marketing: () => `<h2>שיווק</h2><div class="card"><h3>מקורות קליקים</h3>${table(D.sources,[['source','מקור'],['n','קליקים']])}</div>
+  <div class="card"><h3>קהל לאורך זמן</h3>${table(D.audience,[['day','יום'],['tg_members','טלגרם'],['fb_followers','פייסבוק'],['ig_followers','אינסטגרם']])}</div>
+  <div class="card"><h3>קטגוריות וסגנונות (30 יום)</h3>${table(D.cat_perf,[['k','קטגוריה'],['posts','פוסטים'],['clicks','קליקים']])}${table(D.style_perf,[['k','סגנון'],['posts','פוסטים'],['clicks','קליקים']])}</div>
+  <div class="card"><h3>מוצרים מובילים</h3>${table(D.top,[['title','מוצר',null,'t'],['clicks','קליקים']])}</div>`,
+ ai: () => `<h2>AI BUSINESS IMPROVEMENTS</h2><p class="sub">מדורג לפי פוטנציאל עסקי. פעולות עם עלות/הרשאות/מוניטין דורשות את אישורך.</p>
+  <div class="card">${table(D.recs,[['score','ציון'],['title','רעיון'],['problem','הבעיה',null,'t'],['benefit','התועלת',null,'t'],['cost','עלות'],['complexity','מורכבות'],['time_to_implement','זמן'],['impact','השפעה'],['automatable','אוטומטי?'],['source','מקור']])}</div>
+  <div class="card"><h3>פעולות אוטונומיות אחרונות</h3>${table(D.learn,[['k','פעולה',null,'t']])}</div>`,
+ settings: () => `<h2>הגדרות וחיבורים</h2><p class="sub">"מוגדר" = המפתחות קיימים. "פעיל" = נבדק בהצלחה. Pending = טרם חובר.</p>
+  <div class="card">${table(D.connections,[['name','רכיב'],['status','סטטוס',pill],['note','הערה',null,'t']])}</div>
+  <div class="card"><h3>תזמון ופרסום</h3>${table(D.settings,[['k','הגדרה'],['v','ערך']])}<p class="sub">שינוי הגדרות: עריכת config/settings.json ב-GitHub (או בקש ממני).</p></div>`
+};
+function show(id){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
+  document.getElementById('main').innerHTML=`<section class="on">${S[id]()}</section>`; location.hash=id;}
+function filt(q){document.querySelectorAll('#main tbody tr').forEach(tr=>tr.style.display=tr.innerText.includes(q)?'':'none')}
+const nav=document.getElementById('nav'); tabs.forEach(([id,l])=>{const b=$(`<button data-id="${id}">${l}</button>`);b.onclick=()=>show(id);nav.appendChild(b)});
+document.getElementById('gen').textContent='עודכן: '+D.generated; show((location.hash||'#home').slice(1) in S ? location.hash.slice(1) : 'home');
+</script></body></html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>צייד הדילים – כניסה</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#14213D;font-family:system-ui,sans-serif}
+form{background:#fff;padding:28px;border-radius:18px;width:min(92vw,360px);text-align:center}
+input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:16px;margin:12px 0}
+button{width:100%;padding:12px;border:0;border-radius:10px;background:#FF5A36;color:#fff;font-size:16px;font-weight:700}
+#e{color:#c00;min-height:20px}</style></head><body>
+<form id="f"><h2>🔒 מרכז הניהול</h2><input id="pw" type="password" placeholder="סיסמה" autocomplete="current-password" autofocus>
+<button>כניסה</button><div id="e"></div><label><input type="checkbox" id="rem" style="width:auto"> לזכור במכשיר הזה</label></form>
+<script>
+const B = __BUNDLE__;
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function unlock(pw){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(B.salt), iterations:B.iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(B.iv)}, key, b64(B.ct));
+  return new TextDecoder().decode(pt);
+}
+async function go(pw, remember){
+  try{ const html = await unlock(pw); try{ if(remember) localStorage.setItem('dl_pw', pw); }catch(e){}
+       document.open(); document.write(html); document.close(); }
+  catch(e){ document.getElementById('e').textContent='סיסמה שגויה'; try{localStorage.removeItem('dl_pw')}catch(_){} }
+}
+document.getElementById('f').onsubmit = e => { e.preventDefault(); go(document.getElementById('pw').value, document.getElementById('rem').checked); };
+try{ const s = localStorage.getItem('dl_pw'); if(s) go(s, true); }catch(e){}
+</script></body></html>
