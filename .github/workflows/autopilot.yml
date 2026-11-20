@@ -1,8 +1,6 @@
 name: autopilot
 
 on:
-  schedule:
-    - cron: "17 * * * *"      # hourly; the app decides if a post is due (target: every 2h)
   workflow_dispatch: {}       # manual run + reliable trigger from the Cloudflare Worker cron
 
 concurrency:
